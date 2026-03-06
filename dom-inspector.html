@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DOM Inspector — Bookmarklet & Address Bar Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--surface:#161b22;--border:#30363d;
+  --accent:#f0c040;--green:#2ea043;--red:#f85149;
+  --text:#c9d1d9;--muted:#8b949e;--code:#a5d6ff;
+  --mono:'JetBrains Mono',monospace;--display:'Syne',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;padding:40px 24px;max-width:860px;margin:0 auto}
+h1{font-family:var(--display);font-size:32px;font-weight:800;color:#fff;margin-bottom:4px}
+h1 span{color:var(--accent)}
+.sub{color:var(--muted);margin-bottom:40px;font-size:13px}
+h2{font-family:var(--display);font-size:18px;font-weight:700;color:#fff;margin:32px 0 12px;display:flex;align-items:center;gap:10px}
+h2 .badge{background:var(--accent);color:#0d1117;font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px;letter-spacing:.08em}
+h2 .badge.green{background:var(--green)}
+h2 .badge.blue{background:#388bfd;color:#fff}
+p{color:var(--muted);margin-bottom:12px;font-size:13px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:16px}
+.bookmarklet-link{
+  display:inline-block;padding:10px 22px;background:var(--accent);color:#0d1117;
+  font-family:var(--display);font-weight:800;font-size:14px;border-radius:8px;
+  text-decoration:none;border:2px dashed #0d1117;cursor:grab;
+  box-shadow:0 0 20px rgba(240,192,64,0.3);margin:12px 0;
+}
+.bookmarklet-link:hover{background:#ffd060;box-shadow:0 0 28px rgba(240,192,64,0.5)}
+code{background:#0d1117;color:var(--code);padding:2px 7px;border-radius:4px;font-size:12px;border:1px solid var(--border)}
+pre{background:#0d1117;color:var(--code);padding:14px 16px;border-radius:8px;font-size:11.5px;overflow-x:auto;border:1px solid var(--border);margin:10px 0;line-height:1.7;white-space:pre-wrap;word-break:break-all}
+.steps{counter-reset:step;list-style:none;padding:0}
+.steps li{counter-increment:step;display:flex;gap:14px;align-items:flex-start;margin-bottom:10px;font-size:13px;color:var(--muted)}
+.steps li::before{content:counter(step);background:var(--accent);color:#0d1117;font-weight:800;font-size:11px;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.feat{background:#0d1117;border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:12px;color:var(--muted)}
+.feat strong{display:block;color:var(--text);margin-bottom:2px}
+kbd{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-size:11px;color:var(--text)}
+.warn{background:rgba(240,192,64,0.08);border:1px solid rgba(240,192,64,0.3);border-radius:6px;padding:10px 14px;font-size:12px;color:var(--accent);margin-top:10px}
+</style>
+</head>
+<body>
+
+<h1>🔍 DOM <span>Inspector</span></h1>
+<p class="sub">Click any element → capture HTML, selector, styles, or DOM tree → copy to clipboard</p>
+
+<!-- METHOD 1: BOOKMARKLET -->
+<h2><span class="badge">METHOD 1</span> Bookmarklet — Drag to Bookmarks Bar</h2>
+<div class="card">
+  <p>Drag this button to your bookmarks bar. Click it on any page to activate the inspector.</p>
+  <br>
+  <!-- The href is filled by JS below from the minified source -->
+  <a class="bookmarklet-link" id="bookmarkletLink" href="#">🔍 DOM Inspector</a>
+  <br>
+  <p style="margin-top:8px">Then on any page:</p>
+  <ul class="steps">
+    <li>Click the bookmarklet — an overlay appears at the bottom</li>
+    <li>Hover over elements — they highlight in gold</li>
+    <li>Click any element — its data is captured and selector auto-copied to clipboard</li>
+    <li>Switch between <code>HTML</code> <code>Selector</code> <code>Tree</code> <code>Styles</code> tabs</li>
+    <li>Hit <kbd>📋 Copy</kbd> to copy current view, or <kbd>ESC</kbd> to close</li>
+  </ul>
+</div>
+
+<!-- METHOD 2: ADDRESS BAR -->
+<h2><span class="badge green">METHOD 2</span> Address Bar — javascript: snippet</h2>
+<div class="card">
+  <p>Copy the snippet below, paste into the address bar, press Enter. Works on any page.</p>
+  <div class="warn">⚠ Chrome hides the <code>javascript:</code> prefix when you paste — just press Enter anyway.</div>
+  <pre id="addressBarSnippet">Loading…</pre>
+  <button onclick="copySnippet()" style="all:initial;font-family:var(--mono);font-size:11px;font-weight:600;padding:6px 16px;background:#238636;color:#fff;border-radius:5px;cursor:pointer;margin-top:4px">📋 Copy Snippet</button>
+</div>
+
+<!-- METHOD 3: QUICK SNIPPETS -->
+<h2><span class="badge blue">METHOD 3</span> Quick One-Liner Snippets</h2>
+<div class="card">
+  <p>Paste these directly into the address bar for instant results without the overlay:</p>
+
+  <strong style="color:var(--text);font-size:12px;display:block;margin:12px 0 4px">Copy page title + URL:</strong>
+  <pre>javascript:navigator.clipboard.writeText(document.title+'\n'+location.href).then(()=>alert('Copied!'));</pre>
+
+  <strong style="color:var(--text);font-size:12px;display:block;margin:12px 0 4px">Show all links in prompt:</strong>
+  <pre>javascript:prompt('All links',Array.from(document.querySelectorAll('a')).map(a=>a.href).filter(Boolean).join('\n'));</pre>
+
+  <strong style="color:var(--text);font-size:12px;display:block;margin:12px 0 4px">Copy full page HTML:</strong>
+  <pre>javascript:navigator.clipboard.writeText(document.documentElement.outerHTML).then(()=>alert('HTML copied! ('+document.documentElement.outerHTML.length+' chars)'));</pre>
+
+  <strong style="color:var(--text);font-size:12px;display:block;margin:12px 0 4px">Copy all text content:</strong>
+  <pre>javascript:navigator.clipboard.writeText(document.body.innerText).then(()=>alert('Text copied!'));</pre>
+
+  <strong style="color:var(--text);font-size:12px;display:block;margin:12px 0 4px">Inspect element by CSS selector (shows prompt):</strong>
+  <pre>javascript:(function(){var s=prompt('CSS Selector?','h1');var el=document.querySelector(s);el?prompt('outerHTML',el.outerHTML):alert('Not found');})();</pre>
+</div>
+
+<!-- FEATURES -->
+<h2>What the Inspector Captures</h2>
+<div class="feat-grid">
+  <div class="feat"><strong>HTML</strong>Full outerHTML of clicked element including all children</div>
+  <div class="feat"><strong>CSS Selector</strong>Unique path like <code>#main > div:nth-of-type(2) > p</code></div>
+  <div class="feat"><strong>DOM Tree</strong>Nested JSON of tag, id, classes, text up to 4 levels deep</div>
+  <div class="feat"><strong>Computed Styles</strong>Key CSS properties: display, position, size, font, color</div>
+</div>
+
+<script>
+// Load the minified bookmarklet
+// In production this would be the minified string; here we load it inline
+const BOOKMARKLET = "javascript:(function () { if (window.__domInspectorActive) { window.__domInspectorRemove && window.__domInspectorRemove(); return; } window.__domInspectorActive = true; function getSelector(el) { if (el.id) return '#' + CSS.escape(el.id); const parts = []; while (el && el.nodeType === 1 && el !== document.body) { let selector = el.tagName.toLowerCase(); if (el.id) { selector = '#' + CSS.escape(el.id); parts.unshift(selector); break; } const siblings = Array.from(el.parentNode?.children || []).filter(s => s.tagName === el.tagName); if (siblings.length > 1) selector += ':nth-of-type(' + (siblings.indexOf(el) + 1) + ')'; parts.unshift(selector); el = el.parentNode; } return parts.join(' > '); } function domTree(el, depth) { if (depth > 4) return '\u2026'; const children = Array.from(el.children).map(c => domTree(c, depth + 1)); const node = { tag: el.tagName.toLowerCase(), id: el.id || undefined, classes: el.className ? el.className.trim().split(/\\s+/) : undefined, text: el.children.length === 0 ? el.textContent.trim().slice(0, 80) || undefined : undefined, children: children.length ? children : undefined, }; Object.keys(node).forEach(k => node[k] === undefined && delete node[k]); return node; } function getStyles(el) { const cs = window.getComputedStyle(el); const keys = ['display','position','width','height','margin','padding', 'font-size','font-family','color','background-color', 'border','z-index','flex','grid-template-columns','overflow']; const out = {}; keys.forEach(k => { const v = cs.getPropertyValue(k); if (v && v !== 'none' && v !== 'normal' && v !== 'auto') out[k] = v; }); return out; } const overlay = document.createElement('div'); overlay.id = '__dom_inspector_overlay'; overlay.innerHTML = ` <div id=\"__di_toolbar\"> <span id=\"__di_title\">\ud83d\udd0d DOM Inspector \u2014 click any element</span> <div id=\"__di_btns\"> <button id=\"__di_btn_html\">HTML</button> <button id=\"__di_btn_sel\">Selector</button> <button id=\"__di_btn_tree\">Tree</button> <button id=\"__di_btn_styles\">Styles</button> <button id=\"__di_btn_copy\">\ud83d\udccb Copy</button> <button id=\"__di_btn_close\">\u2715</button> </div> </div> <pre id=\"__di_output\">Click any element on the page\u2026</pre> `; const style = document.createElement('style'); style.textContent = ` #__dom_inspector_overlay { all: initial; position: fixed; bottom: 0; left: 0; right: 0; z-index: 2147483647; background: #0d1117; color: #c9d1d9; font-family: 'JetBrains Mono', monospace, monospace; font-size: 12px; border-top: 2px solid #f0c040; box-shadow: 0 -4px 24px rgba(0,0,0,0.6); display: flex; flex-direction: column; max-height: 40vh; } #__di_toolbar { display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; background: #161b22; border-bottom: 1px solid #30363d; flex-shrink: 0; } #__di_title { font-weight: 700; color: #f0c040; font-size: 11px; letter-spacing:.05em; } #__di_btns { display: flex; gap: 6px; } #__di_btns button { all: initial; font-family: inherit; font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 4px; cursor: pointer; letter-spacing:.04em; background: #21262d; color: #8b949e; border: 1px solid #30363d; transition: all .15s; } #__di_btns button:hover { background: #f0c040; color: #0d1117; border-color: #f0c040; } #__di_btns button.active { background: #f0c040; color: #0d1117; border-color: #f0c040; } #__di_btn_copy { background: #238636; color: #fff; border-color: #2ea043; } #__di_btn_copy:hover { background: #2ea043; color: #fff; } #__di_btn_close { background: #da3633; color: #fff; border-color: #f85149; } #__di_btn_close:hover { background: #f85149; } #__di_output { margin: 0; padding: 10px 14px; overflow: auto; white-space: pre-wrap; word-break: break-all; line-height: 1.6; color: #0389f77a; flex: 1; } .__di_highlight { outline: 2px solid #f0c040 !important; outline-offset: 1px !important; background-color: rgba(240,192,64,0.08) !important; } `; document.head.appendChild(style); document.body.appendChild(overlay); let currentEl = null; let mode = 'html'; let hovered = null; const output = document.getElementById('__di_output'); function setMode(m) { mode = m; ['html','sel','tree','styles'].forEach(id => { const b = document.getElementById('__di_btn_' + id); if (b) b.classList.toggle('active', id === m.replace('selector','sel')); }); document.getElementById('__di_btn_sel').classList.toggle('active', m === 'selector'); render(); } function render() { if (!currentEl) { output.textContent = 'Click any element on the page\u2026'; return; } try { if (mode === 'html') output.textContent = currentEl.outerHTML; if (mode === 'selector') output.textContent = getSelector(currentEl); if (mode === 'tree') output.textContent = JSON.stringify(domTree(currentEl, 0), null, 2); if (mode === 'styles') output.textContent = JSON.stringify(getStyles(currentEl), null, 2); } catch(e) { output.textContent = 'Error: ' + e.message; } } function getCurrentData() { if (!currentEl) return ''; if (mode === 'html') return currentEl.outerHTML; if (mode === 'selector') return getSelector(currentEl); if (mode === 'tree') return JSON.stringify(domTree(currentEl, 0), null, 2); if (mode === 'styles') return JSON.stringify(getStyles(currentEl), null, 2); return ''; } document.getElementById('__di_btn_html').addEventListener('click', () => setMode('html')); document.getElementById('__di_btn_sel').addEventListener('click', () => setMode('selector')); document.getElementById('__di_btn_tree').addEventListener('click', () => setMode('tree')); document.getElementById('__di_btn_styles').addEventListener('click', () => setMode('styles')); document.getElementById('__di_btn_copy').addEventListener('click', () => { const data = getCurrentData(); navigator.clipboard.writeText(data).then(() => { const btn = document.getElementById('__di_btn_copy'); btn.textContent = '\u2713 Copied!'; setTimeout(() => btn.textContent = '\ud83d\udccb Copy', 1500); }); }); function remove() { document.removeEventListener('mouseover', onHover, true); document.removeEventListener('click', onClick, true); document.removeEventListener('keydown', onKey, true); if (hovered) hovered.classList.remove('__di_highlight'); overlay.remove(); style.remove(); window.__domInspectorActive = false; window.__domInspectorRemove = null; } window.__domInspectorRemove = remove; document.getElementById('__di_btn_close').addEventListener('click', remove); function onHover(e) { if (overlay.contains(e.target)) return; if (hovered && hovered !== e.target) hovered.classList.remove('__di_highlight'); hovered = e.target; hovered.classList.add('__di_highlight'); } function onClick(e) { if (overlay.contains(e.target)) return; e.preventDefault(); e.stopPropagation(); currentEl = e.target; if (hovered) hovered.classList.remove('__di_highlight'); render(); try { navigator.clipboard.writeText(getSelector(currentEl)); } catch(_) {} } function onKey(e) { if (e.key === 'Escape') remove(); } document.addEventListener('mouseover', onHover, true); document.addEventListener('click', onClick, true); document.addEventListener('keydown', onKey, true); setMode('html'); })();";
+
+document.getElementById('bookmarkletLink').href = BOOKMARKLET;
+document.getElementById('addressBarSnippet').textContent = BOOKMARKLET;
+
+function copySnippet() {
+  navigator.clipboard.writeText(BOOKMARKLET).then(() => {
+    const btn = document.querySelector('button');
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = '📋 Copy Snippet', 1500);
+  });
+}
+</script>
+</body>
+</html>
